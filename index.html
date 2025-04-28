@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Instagram Trend Analyzer</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #8360c3, #2ebf91);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            color: #fff;
+        }
+        header {
+            margin-top: 30px;
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+        }
+        form {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 30px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        }
+        input[type="file"] {
+            margin: 20px 0;
+            padding: 10px;
+            background: #fff;
+            color: #333;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #ff6f61;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #ff3d2e;
+        }
+        .result {
+            margin-top: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        .hashtags {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+        .hashtag {
+            background: #fff;
+            color: #333;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<header>📈 Instagram Trend Analyzer 📷</header>
+
+<form id="uploadForm">
+    <input type="file" id="fileInput" required><br>
+    <button type="submit">Upload & Analyze</button>
+</form>
+
+<div id="result" class="result" style="display:none;">
+    <h2>🔍 Analysis Result:</h2>
+    <p><strong>📅 Best Time to Post:</strong> <span id="bestTime"></span></p>
+    <p><strong>📝 Suggested Caption:</strong> <span id="caption"></span></p>
+    <div class="hashtags" id="hashtags"></div>
+</div>
+
+<script>
+    const form = document.getElementById('uploadForm');
+    const fileInput = document.getElementById('fileInput');
+    const resultDiv = document.getElementById('result');
+    const bestTimeSpan = document.getElementById('bestTime');
+    const captionSpan = document.getElementById('caption');
+    const hashtagsDiv = document.getElementById('hashtags');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const file = fileInput.files[0];
+        if (!file) {
+            alert("Please select a file first!");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch('http://127.0.0.1:5000/analyze', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to analyze the file');
+            }
+
+            const data = await response.json();
+            bestTimeSpan.textContent = data.best_time;
+            captionSpan.textContent = data.caption;
+            
+            hashtagsDiv.innerHTML = "";
+            data.hashtags.forEach(tag => {
+                const span = document.createElement('span');
+                span.className = 'hashtag';
+                span.textContent = tag;
+                hashtagsDiv.appendChild(span);
+            });
+
+            resultDiv.style.display = 'block';
+
+        } catch (error) {
+            console.error(error);
+            alert('Error occurred while uploading. Please check if Flask server is running.');
+        }
+    });
+</script>
+
+</body>
+</html>
